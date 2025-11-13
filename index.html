@@ -58,39 +58,27 @@
 
     .card-front {
       background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-      font-size: 28px;
+      font-size: 20px;
       font-weight: bold;
       color: #333;
+      text-align: center;
+      padding: 10px;
     }
 
     .card-back {
       background-color: white;
       transform: rotateY(180deg);
-      padding: 10px;
+      font-size: 2rem;
+      color: #c0392b;
+      flex-direction: column;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
     }
 
     .matched {
       opacity: 0.7;
       pointer-events: none;
-    }
-
-    .celebration {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 100;
-      display: none;
-    }
-
-    .confetti {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background-color: #f00;
-      border-radius: 50%;
     }
 
     .welcome-screen {
@@ -122,22 +110,6 @@
       width: 500px;
       position: relative;
       overflow: hidden;
-    }
-
-    .welcome-container::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 10px;
-      background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
-    }
-
-    .fruit-icon {
-      position: absolute;
-      opacity: 0.1;
-      z-index: -1;
     }
 
     .start-btn {
@@ -183,11 +155,6 @@
   <!-- Welcome Screen -->
   <div id="welcome-screen" class="welcome-screen">
     <div class="welcome-container">
-      <div class="fruit-icon" style="top: 20%; left: 10%; font-size: 3rem;">🍎</div>
-      <div class="fruit-icon" style="top: 30%; right: 15%; font-size: 2.5rem;">🍊</div>
-      <div class="fruit-icon" style="bottom: 25%; left: 15%; font-size: 2.8rem;">🍌</div>
-      <div class="fruit-icon" style="bottom: 20%; right: 10%; font-size: 3.2rem;">🍉</div>
-
       <h1 class="text-4xl font-bold text-red-800 mb-3">你的包有什么？</h1>
       <h2 class="text-2xl text-gray-700 mb-6">มีอะไรในกระเป๋าของคุณ?</h2>
       <p class="text-lg text-gray-600 mb-4">เกมจับคู่ผลไม้ภาษาจีน</p>
@@ -215,30 +182,19 @@
       </header>
 
       <div class="bg-white rounded-xl p-6 shadow-lg">
-        <div
-          id="game-board"
-          class="grid grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
-        ></div>
+        <div id="game-board" class="grid grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"></div>
       </div>
 
       <div class="mt-6 text-center">
-        <button
-          id="restart-btn"
-          class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-        >
+        <button id="restart-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
           เริ่มเกมใหม่
         </button>
-        <button
-          id="back-to-welcome-btn"
-          class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-        >
+        <button id="back-to-welcome-btn" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
           กลับหน้าหลัก
         </button>
       </div>
     </div>
   </div>
-
-  <div id="celebration" class="celebration"></div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -260,29 +216,17 @@
       let lockBoard = false;
 
       const fruits = [
-        { name: "山竹", pinyin: "shān zhú", thai: "มังคุด", emoji: "🫘" },
-        { name: "西瓜", pinyin: "xī guā", thai: "แตงโม", emoji: "🍉" },
-        { name: "榴莲", pinyin: "liú lián", thai: "ทุเรียน", emoji: "🥝" },
-        { name: "芒果", pinyin: "máng guǒ", thai: "มะม่วง", emoji: "🥭" },
-        { name: "苹果", pinyin: "píng guǒ", thai: "แอปเปิ้ล", emoji: "🍎" },
-        { name: "香蕉", pinyin: "xiāng jiāo", thai: "กล้วย", emoji: "🍌" },
-        { name: "橘子", pinyin: "jú zi", thai: "ส้ม", emoji: "🍊" },
-        { name: "草莓", pinyin: "cǎo méi", thai: "สตรอเบอร์รี่", emoji: "🍓" },
-        { name: "葡萄", pinyin: "pú tao", thai: "องุ่น", emoji: "🍇" },
-        { name: "荔枝", pinyin: "lì zhī", thai: "ลิ้นจี่", emoji: "🍒" },
+        { name: "山竹", emoji: "🫘" },
+        { name: "西瓜", emoji: "🍉" },
+        { name: "榴莲", emoji: "🥝" },
+        { name: "芒果", emoji: "🥭" },
+        { name: "苹果", emoji: "🍎" },
+        { name: "香蕉", emoji: "🍌" },
+        { name: "橘子", emoji: "🍊" },
+        { name: "草莓", emoji: "🍓" },
+        { name: "葡萄", emoji: "🍇" },
+        { name: "荔枝", emoji: "🍒" },
       ];
-
-      startGameBtn.addEventListener("click", () => {
-        welcomeScreen.classList.add("fade-out");
-        gameContainer.classList.add("game-visible");
-        initGame();
-      });
-
-      backToWelcomeBtn.addEventListener("click", () => {
-        welcomeScreen.classList.remove("fade-out");
-        gameContainer.classList.remove("game-visible");
-        clearInterval(timerInterval);
-      });
 
       function shuffle(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -303,26 +247,32 @@
           const el = document.createElement("div");
           el.className = "card";
           el.dataset.name = card.name;
+
           el.innerHTML = `
             <div class="card-inner">
               <div class="card-front">
                 ${
                   card.type === "text"
-                    ? card.name
+                    ? `<p class="text-center">${card.name}</p>`
                     : `<div class='fruit-emoji'>${card.emoji}</div>`
                 }
               </div>
-              <div class="card-back"></div>
+              <div class="card-back flex flex-col items-center justify-center">
+                <div class="fruit-emoji text-4xl mb-2">${card.emoji}</div>
+                <p class="text-lg font-bold">${card.name}</p>
+              </div>
             </div>`;
+
           el.addEventListener("click", flipCard);
           gameBoard.appendChild(el);
         });
       }
 
       function flipCard() {
-        if (lockBoard || this.classList.contains("flipped")) return;
+        if (lockBoard || this.classList.contains("flipped") || this.classList.contains("matched")) return;
         this.classList.add("flipped");
         currentlyFlippedCards.push(this);
+
         if (currentlyFlippedCards.length === 2) checkForMatch();
       }
 
@@ -374,7 +324,31 @@
         startTimer();
       }
 
+      startGameBtn.addEventListener("click", () => {
+        welcomeScreen.classList.add("fade-out");
+        gameContainer.classList.add("game-visible");
+        initGame();
+      });
+
       restartBtn.addEventListener("click", initGame);
+
+      backToWelcomeBtn.addEventListener("click", () => {
+        welcomeScreen.classList.remove("fade-out");
+        gameContainer.classList.remove("game-visible");
+        clearInterval(timerInterval);
+
+        document.querySelectorAll(".card").forEach(c => {
+          c.classList.remove("flipped", "matched");
+        });
+
+        score = 0;
+        matchesFound = 0;
+        scoreElement.textContent = score;
+        matchesElement.textContent = matchesFound;
+        timerElement.textContent = 60;
+        currentlyFlippedCards = [];
+        lockBoard = false;
+      });
     });
   </script>
 </body>
