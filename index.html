@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chinese Fruit Matching Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap");
+
+    body {
+      font-family: "Noto Sans SC", "Noto Sans Thai", sans-serif;
+      background-color: #f5f0e6;
+      background-image: radial-gradient(#f8d7da 1px, transparent 1px),
+        radial-gradient(#f8d7da 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+    }
+
+    .card {
+      perspective: 1000px;
+      width: 120px;
+      height: 160px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-front {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .card-back {
+      background-color: white;
+      transform: rotateY(180deg);
+      padding: 10px;
+    }
+
+    .matched {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #f00;
+      border-radius: 50%;
+    }
+
+    .welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f5f0e6;
+      background-image: radial-gradient(#f8d7da 1px, transparent 1px),
+        radial-gradient(#f8d7da 1px, transparent 1px);
+      background-size: 20px 20px;
+      background-position: 0 0, 10px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .welcome-container {
+      background-color: white;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 90%;
+      width: 500px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10px;
+      background: linear-gradient(90deg, #ff9a9e 0%, #fad0c4 100%);
+    }
+
+    .fruit-icon {
+      position: absolute;
+      opacity: 0.1;
+      z-index: -1;
+    }
+
+    .start-btn {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 0.8rem 2.5rem;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+      margin-top: 2rem;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(255, 154, 158, 0.6);
+    }
+
+    .fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .game-container {
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .game-visible {
+      opacity: 1;
+    }
+
+    .fruit-emoji {
+      font-size: 50px;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Welcome Screen -->
+  <div id="welcome-screen" class="welcome-screen">
+    <div class="welcome-container">
+      <div class="fruit-icon" style="top: 20%; left: 10%; font-size: 3rem;">🍎</div>
+      <div class="fruit-icon" style="top: 30%; right: 15%; font-size: 2.5rem;">🍊</div>
+      <div class="fruit-icon" style="bottom: 25%; left: 15%; font-size: 2.8rem;">🍌</div>
+      <div class="fruit-icon" style="bottom: 20%; right: 10%; font-size: 3.2rem;">🍉</div>
+
+      <h1 class="text-4xl font-bold text-red-800 mb-3">你的包有什么？</h1>
+      <h2 class="text-2xl text-gray-700 mb-6">มีอะไรในกระเป๋าของคุณ?</h2>
+      <p class="text-lg text-gray-600 mb-4">เกมจับคู่ผลไม้ภาษาจีน</p>
+      <p class="text-gray-500 mb-8">จับคู่อักษรจีนกับรูปภาพผลไม้ให้ถูกต้อง</p>
+
+      <button id="start-game-btn" class="start-btn">
+        开始游戏 <br /><span class="text-sm">เริ่มเกม</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Container -->
+  <div id="game-container" class="game-container min-h-screen py-8 px-4">
+    <div class="max-w-4xl mx-auto">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-red-800 mb-2">中文水果配对游戏</h1>
+        <h2 class="text-xl text-gray-700">เกมจับคู่ผลไม้ภาษาจีน</h2>
+        <div class="mt-4 bg-yellow-100 p-3 rounded-lg inline-block">
+          <p class="text-gray-700">
+            คะแนน: <span id="score" class="font-bold">0</span> | เวลา:
+            <span id="timer" class="font-bold">60</span> วินาที | คู่ที่พบ:
+            <span id="matches" class="font-bold">0</span>/10
+          </p>
+        </div>
+      </header>
+
+      <div class="bg-white rounded-xl p-6 shadow-lg">
+        <div
+          id="game-board"
+          class="grid grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"
+        ></div>
+      </div>
+
+      <div class="mt-6 text-center">
+        <button
+          id="restart-btn"
+          class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+        >
+          เริ่มเกมใหม่
+        </button>
+        <button
+          id="back-to-welcome-btn"
+          class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+        >
+          กลับหน้าหลัก
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="celebration" class="celebration"></div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const welcomeScreen = document.getElementById("welcome-screen");
+      const gameContainer = document.getElementById("game-container");
+      const startGameBtn = document.getElementById("start-game-btn");
+      const backToWelcomeBtn = document.getElementById("back-to-welcome-btn");
+      const gameBoard = document.getElementById("game-board");
+      const scoreElement = document.getElementById("score");
+      const timerElement = document.getElementById("timer");
+      const matchesElement = document.getElementById("matches");
+      const restartBtn = document.getElementById("restart-btn");
+
+      let score = 0;
+      let timeLeft = 60;
+      let matchesFound = 0;
+      let timerInterval;
+      let currentlyFlippedCards = [];
+      let lockBoard = false;
+
+      const fruits = [
+        { name: "山竹", pinyin: "shān zhú", thai: "มังคุด", emoji: "🫘" },
+        { name: "西瓜", pinyin: "xī guā", thai: "แตงโม", emoji: "🍉" },
+        { name: "榴莲", pinyin: "liú lián", thai: "ทุเรียน", emoji: "🥝" },
+        { name: "芒果", pinyin: "máng guǒ", thai: "มะม่วง", emoji: "🥭" },
+        { name: "苹果", pinyin: "píng guǒ", thai: "แอปเปิ้ล", emoji: "🍎" },
+        { name: "香蕉", pinyin: "xiāng jiāo", thai: "กล้วย", emoji: "🍌" },
+        { name: "橘子", pinyin: "jú zi", thai: "ส้ม", emoji: "🍊" },
+        { name: "草莓", pinyin: "cǎo méi", thai: "สตรอเบอร์รี่", emoji: "🍓" },
+        { name: "葡萄", pinyin: "pú tao", thai: "องุ่น", emoji: "🍇" },
+        { name: "荔枝", pinyin: "lì zhī", thai: "ลิ้นจี่", emoji: "🍒" },
+      ];
+
+      startGameBtn.addEventListener("click", () => {
+        welcomeScreen.classList.add("fade-out");
+        gameContainer.classList.add("game-visible");
+        initGame();
+      });
+
+      backToWelcomeBtn.addEventListener("click", () => {
+        welcomeScreen.classList.remove("fade-out");
+        gameContainer.classList.remove("game-visible");
+        clearInterval(timerInterval);
+      });
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      function createCards() {
+        gameBoard.innerHTML = "";
+        const deck = [];
+        fruits.forEach((f) => deck.push({ ...f, type: "text" }));
+        fruits.forEach((f) => deck.push({ ...f, type: "emoji" }));
+        shuffle(deck);
+
+        deck.forEach((card) => {
+          const el = document.createElement("div");
+          el.className = "card";
+          el.dataset.name = card.name;
+          el.innerHTML = `
+            <div class="card-inner">
+              <div class="card-front">
+                ${
+                  card.type === "text"
+                    ? card.name
+                    : `<div class='fruit-emoji'>${card.emoji}</div>`
+                }
+              </div>
+              <div class="card-back"></div>
+            </div>`;
+          el.addEventListener("click", flipCard);
+          gameBoard.appendChild(el);
+        });
+      }
+
+      function flipCard() {
+        if (lockBoard || this.classList.contains("flipped")) return;
+        this.classList.add("flipped");
+        currentlyFlippedCards.push(this);
+        if (currentlyFlippedCards.length === 2) checkForMatch();
+      }
+
+      function checkForMatch() {
+        const [c1, c2] = currentlyFlippedCards;
+        if (c1.dataset.name === c2.dataset.name) {
+          c1.classList.add("matched");
+          c2.classList.add("matched");
+          updateScore(10);
+          matchesFound++;
+          matchesElement.textContent = matchesFound;
+        } else {
+          lockBoard = true;
+          setTimeout(() => {
+            c1.classList.remove("flipped");
+            c2.classList.remove("flipped");
+            lockBoard = false;
+          }, 1000);
+          updateScore(-2);
+        }
+        currentlyFlippedCards = [];
+      }
+
+      function updateScore(p) {
+        score += p;
+        if (score < 0) score = 0;
+        scoreElement.textContent = score;
+      }
+
+      function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 60;
+        timerElement.textContent = timeLeft;
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          timerElement.textContent = timeLeft;
+          if (timeLeft <= 0) clearInterval(timerInterval);
+        }, 1000);
+      }
+
+      function initGame() {
+        score = 0;
+        matchesFound = 0;
+        scoreElement.textContent = score;
+        matchesElement.textContent = matchesFound;
+        lockBoard = false;
+        currentlyFlippedCards = [];
+        createCards();
+        startTimer();
+      }
+
+      restartBtn.addEventListener("click", initGame);
+    });
+  </script>
+</body>
+</html>
