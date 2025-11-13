@@ -59,7 +59,6 @@
       justify-content: center;
       flex-direction: column;
       text-align: center;
-      padding: 10px;
     }
 
     .card-front {
@@ -67,6 +66,7 @@
       font-size: 20px;
       font-weight: bold;
       color: #333;
+      padding: 10px;
     }
 
     .card-back {
@@ -79,11 +79,7 @@
       width: 60%;
       max-width: 80px;
       height: auto;
-      margin-bottom: 8px;
-    }
-
-    .card-back p {
-      margin: 2px 0;
+      margin-bottom: 10px;
     }
 
     .matched {
@@ -153,40 +149,45 @@
       opacity: 1;
     }
 
-    /* Celebration */
-    .celebration {
+    /* Popup */
+    .popup {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: 100;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fff;
+      padding: 15px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      z-index: 2000;
+      animation: popup 1s forwards;
     }
+
+    @keyframes popup {
+      0% {opacity: 0; transform: translate(-50%, -20px);}
+      50% {opacity: 1;}
+      100% {opacity: 0; transform: translate(-50%, -50px);}
+    }
+
+    /* Confetti */
     .confetti {
-      position: absolute;
+      position: fixed;
       width: 10px;
       height: 10px;
-      background-color: #f59e0b;
-      opacity: 0.9;
-      border-radius: 50%;
-      animation: fall 3s linear forwards;
+      background-color: red;
+      z-index: 3000;
+      pointer-events: none;
+      animation: confetti-fall linear forwards;
     }
-    @keyframes fall {
-      0% { transform: translateY(-10px) rotate(0deg); }
-      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg);}
+      100% { transform: translateY(100vh) rotate(360deg);}
     }
 
     @media (max-width: 640px) {
       .card {
         max-width: 80px;
-      }
-      .card-front {
-        font-size: 16px;
-      }
-      .card-back img {
-        max-width: 60px;
       }
     }
   </style>
@@ -235,9 +236,7 @@
     </div>
   </div>
 
-  <!-- Celebration & Win Modal -->
-  <div id="celebration" class="celebration"></div>
-
+  <!-- Win Modal -->
   <div id="win-modal" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 hidden">
       <div class="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all">
           <div class="text-center">
@@ -256,184 +255,212 @@
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const welcomeScreen = document.getElementById("welcome-screen");
-      const gameContainer = document.getElementById("game-container");
-      const startGameBtn = document.getElementById("start-game-btn");
-      const backToWelcomeBtn = document.getElementById("back-to-welcome-btn");
-      const gameBoard = document.getElementById("game-board");
-      const scoreElement = document.getElementById("score");
-      const timerElement = document.getElementById("timer");
-      const matchesElement = document.getElementById("matches");
-      const restartBtn = document.getElementById("restart-btn");
+document.addEventListener("DOMContentLoaded", () => {
+  const welcomeScreen = document.getElementById("welcome-screen");
+  const gameContainer = document.getElementById("game-container");
+  const startGameBtn = document.getElementById("start-game-btn");
+  const backToWelcomeBtn = document.getElementById("back-to-welcome-btn");
+  const gameBoard = document.getElementById("game-board");
+  const scoreElement = document.getElementById("score");
+  const timerElement = document.getElementById("timer");
+  const matchesElement = document.getElementById("matches");
+  const restartBtn = document.getElementById("restart-btn");
 
-      let score = 0;
-      let timeLeft = 60;
-      let matchesFound = 0;
-      let timerInterval;
-      let currentlyFlippedCards = [];
-      let lockBoard = false;
+  const winModal = document.getElementById("win-modal");
+  const finalScore = document.getElementById("final-score");
+  const playAgainBtn = document.getElementById("play-again-btn");
+  const winBackBtn = document.getElementById("win-back-to-welcome-btn");
 
-      const fruits = [
-        { name: "苹果", pinyin: "píng guǒ", img: "apple.png" },
-        { name: "香蕉", pinyin: "xiāng jiāo", img: "banana.png" },
-        { name: "樱桃", pinyin: "yīng táo", img: "cherry.png" },
-        { name: "榴莲", pinyin: "liú lián", img: "durian.png" },
-        { name: "葡萄", pinyin: "pú táo", img: "grapes.png" },
-        { name: "芒果", pinyin: "máng guǒ", img: "mango.png" },
-        { name: "山竹", pinyin: "shān zhú", img: "mangosteen.png" },
-        { name: "橘子", pinyin: "jú zi", img: "orange.png" },
-        { name: "草莓", pinyin: "cǎo méi", img: "strawberry.png" },
-        { name: "西瓜", pinyin: "xī guā", img: "watermelon.png" },
-      ];
+  let score = 0;
+  let timeLeft = 60;
+  let matchesFound = 0;
+  let timerInterval;
+  let currentlyFlippedCards = [];
+  let lockBoard = false;
 
-      function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-      }
+  const fruits = [
+    { name: "苹果", pinyin:"píng guǒ", thai:"แอปเปิ้ล", img: "apple.png", sound:"apple.mp3" },
+    { name: "香蕉", pinyin:"xiāng jiāo", thai:"กล้วย", img: "banana.png", sound:"banana.mp3" },
+    { name: "樱桃", pinyin:"yīng táo", thai:"เชอร์รี่", img: "cherry.png", sound:"cherry.mp3" },
+    { name: "榴莲", pinyin:"liú lián", thai:"ทุเรียน", img: "durian.png", sound:"durian.mp3" },
+    { name: "葡萄", pinyin:"pú táo", thai:"องุ่น", img: "grapes.png", sound:"grapes.mp3" },
+    { name: "芒果", pinyin:"máng guǒ", thai:"มะม่วง", img: "mango.png", sound:"mango.mp3" },
+    { name: "山竹", pinyin:"shān zhú", thai:"มังคุด", img: "mangosteen.png", sound:"mangosteen.mp3" },
+    { name: "橘子", pinyin:"jú zi", thai:"ส้ม", img: "orange.png", sound:"orange.mp3" },
+    { name: "草莓", pinyin:"cǎo méi", thai:"สตรอว์เบอร์รี่", img: "strawberry.png", sound:"strawberry.mp3" },
+    { name: "西瓜", pinyin:"xī guā", thai:"แตงโม", img: "watermelon.png", sound:"watermelon.mp3" },
+  ];
 
-      function createCards() {
-        gameBoard.innerHTML = "";
-        const deck = [];
-        fruits.forEach(f => deck.push({ ...f, type: "text" }));
-        fruits.forEach(f => deck.push({ ...f, type: "image" }));
-        shuffle(deck);
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
 
-        deck.forEach(card => {
-          const el = document.createElement("div");
-          el.className = "card";
-          el.dataset.name = card.name;
+  function createCards() {
+    gameBoard.innerHTML = "";
+    const deck = [];
+    fruits.forEach(f => deck.push({ ...f, type: "text" }));
+    fruits.forEach(f => deck.push({ ...f, type: "image" }));
+    shuffle(deck);
 
-          el.innerHTML = `
-            <div class="card-inner">
-              <div class="card-front">
-                ${
-                  card.type === "text"
-                    ? `<p class="text-center">${card.name}</p>`
-                    : `<img src="images/${card.img}" alt="${card.name}" />`
-                }
-              </div>
-              <div class="card-back">
-                <img src="images/${card.img}" alt="${card.name}" />
-                <p class="text-lg font-bold">${card.name}</p>
-                <p class="text-sm text-gray-500">${card.pinyin}</p>
-              </div>
-            </div>`;
+    deck.forEach(card => {
+      const el = document.createElement("div");
+      el.className = "card";
+      el.dataset.name = card.name;
+      el.dataset.pinyin = card.pinyin;
+      el.dataset.thai = card.thai;
+      el.dataset.sound = card.sound;
 
-          el.addEventListener("click", flipCard);
-          gameBoard.appendChild(el);
-        });
-      }
+      el.innerHTML = `
+        <div class="card-inner">
+          <div class="card-front">
+            ${card.type === "text" ? `<p class="text-center">${card.name}</p>` : `<img src="images/${card.img}" alt="${card.name}" />`}
+          </div>
+          <div class="card-back">
+            <img src="images/${card.img}" alt="${card.name}" />
+            <p class="text-lg font-bold">${card.name}</p>
+            <p class="text-sm text-gray-600">${card.pinyin}</p>
+          </div>
+        </div>
+      `;
 
-      function flipCard() {
-        if (lockBoard || this.classList.contains("flipped") || this.classList.contains("matched")) return;
-        this.classList.add("flipped");
-        currentlyFlippedCards.push(this);
-
-        if (currentlyFlippedCards.length === 2) checkForMatch();
-      }
-
-      function checkForMatch() {
-        const [c1, c2] = currentlyFlippedCards;
-        if (c1.dataset.name === c2.dataset.name) {
-          c1.classList.add("matched");
-          c2.classList.add("matched");
-          updateScore(10);
-          matchesFound++;
-          matchesElement.textContent = matchesFound;
-
-          if (matchesFound === 10) { // ชนะเกม
-            setTimeout(showWinModal, 500);
-          }
-        } else {
-          lockBoard = true;
-          setTimeout(() => {
-            c1.classList.remove("flipped");
-            c2.classList.remove("flipped");
-            lockBoard = false;
-          }, 1000);
-          updateScore(-2);
-        }
-        currentlyFlippedCards = [];
-      }
-
-      function updateScore(p) {
-        score += p;
-        if (score < 0) score = 0;
-        scoreElement.textContent = score;
-      }
-
-      function startTimer() {
-        clearInterval(timerInterval);
-        timeLeft = 60;
-        timerElement.textContent = timeLeft;
-        timerInterval = setInterval(() => {
-          timeLeft--;
-          timerElement.textContent = timeLeft;
-          if (timeLeft <= 0) clearInterval(timerInterval);
-        }, 1000);
-      }
-
-      function initGame() {
-        score = 0;
-        matchesFound = 0;
-        scoreElement.textContent = score;
-        matchesElement.textContent = matchesFound;
-        lockBoard = false;
-        currentlyFlippedCards = [];
-        createCards();
-        startTimer();
-      }
-
-      function showWinModal() {
-        document.getElementById("final-score").textContent = score;
-        document.getElementById("win-modal").classList.remove("hidden");
-        triggerCelebration();
-      }
-
-      function triggerCelebration() {
-        const celebration = document.getElementById("celebration");
-        for (let i = 0; i < 100; i++) {
-          const confetti = document.createElement("div");
-          confetti.className = "confetti";
-          confetti.style.left = Math.random() * 100 + "vw";
-          confetti.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
-          confetti.style.animationDuration = 2 + Math.random() * 3 + "s";
-          celebration.appendChild(confetti);
-
-          setTimeout(() => { confetti.remove(); }, 5000);
-        }
-      }
-
-      startGameBtn.addEventListener("click", () => {
-        welcomeScreen.classList.add("fade-out");
-        gameContainer.classList.add("game-visible");
-        initGame();
-      });
-
-      restartBtn.addEventListener("click", initGame);
-
-      backToWelcomeBtn.addEventListener("click", () => {
-        welcomeScreen.classList.remove("fade-out");
-        gameContainer.classList.remove("game-visible");
-        clearInterval(timerInterval);
-      });
-
-      document.getElementById("play-again-btn").addEventListener("click", () => {
-        document.getElementById("win-modal").classList.add("hidden");
-        initGame();
-      });
-
-      document.getElementById("win-back-to-welcome-btn").addEventListener("click", () => {
-        document.getElementById("win-modal").classList.add("hidden");
-        welcomeScreen.classList.remove("fade-out");
-        gameContainer.classList.remove("game-visible");
-        clearInterval(timerInterval);
-      });
+      el.addEventListener("click", flipCard);
+      gameBoard.appendChild(el);
     });
+  }
+
+  function flipCard() {
+    if (lockBoard || this.classList.contains("flipped") || this.classList.contains("matched")) return;
+    this.classList.add("flipped");
+    currentlyFlippedCards.push(this);
+
+    if (currentlyFlippedCards.length === 2) checkForMatch();
+  }
+
+  function checkForMatch() {
+    const [c1, c2] = currentlyFlippedCards;
+    if (c1.dataset.name === c2.dataset.name) {
+      c1.classList.add("matched");
+      c2.classList.add("matched");
+      updateScore(10);
+      matchesFound++;
+      matchesElement.textContent = matchesFound;
+
+      // Play sound
+      const audio = new Audio(`sounds/${c1.dataset.sound}`);
+      audio.play();
+
+      // Popup
+      const popup = document.createElement("div");
+      popup.className = "popup";
+      popup.innerHTML = `<div class="text-center">
+        <div class="text-3xl font-bold mb-2">${c1.dataset.name}</div>
+        <div class="text-xl text-red-600 mb-1">${c1.dataset.pinyin}</div>
+        <div class="text-lg">${c1.dataset.thai}</div>
+      </div>`;
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 1000);
+
+      // Confetti
+      for (let i = 0; i < 10; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = `${c1.getBoundingClientRect().left + Math.random()*c1.offsetWidth}px`;
+        confetti.style.top = `${c1.getBoundingClientRect().top}px`;
+        confetti.style.backgroundColor = `hsl(${Math.random()*360},100%,50%)`;
+        confetti.style.animationDuration = (2+Math.random()*2)+"s";
+        document.body.appendChild(confetti);
+        setTimeout(()=>confetti.remove(),4000);
+      }
+
+      // Check win
+      if (matchesFound === fruits.length) showWinModal();
+
+    } else {
+      lockBoard = true;
+      setTimeout(() => {
+        c1.classList.remove("flipped");
+        c2.classList.remove("flipped");
+        lockBoard = false;
+      }, 1000);
+      updateScore(-2);
+    }
+    currentlyFlippedCards = [];
+  }
+
+  function updateScore(p) {
+    score += p;
+    if (score < 0) score = 0;
+    scoreElement.textContent = score;
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timeLeft = 60;
+    timerElement.textContent = timeLeft;
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timerElement.textContent = timeLeft;
+      if (timeLeft <= 0) clearInterval(timerInterval);
+    }, 1000);
+  }
+
+  function initGame() {
+    score = 0;
+    matchesFound = 0;
+    scoreElement.textContent = score;
+    matchesElement.textContent = matchesFound;
+    lockBoard = false;
+    currentlyFlippedCards = [];
+    createCards();
+    startTimer();
+  }
+
+  function showWinModal() {
+    finalScore.textContent = score;
+    winModal.classList.remove("hidden");
+    // Confetti on modal
+    for (let i=0;i<50;i++){
+      const confetti=document.createElement("div");
+      confetti.className="confetti";
+      confetti.style.left=`${Math.random()*window.innerWidth}px`;
+      confetti.style.top=`${Math.random()*window.innerHeight}px`;
+      confetti.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`;
+      confetti.style.animationDuration=(2+Math.random()*2)+"s";
+      document.body.appendChild(confetti);
+      setTimeout(()=>confetti.remove(),4000);
+    }
+  }
+
+  startGameBtn.addEventListener("click", () => {
+    welcomeScreen.classList.add("fade-out");
+    gameContainer.classList.add("game-visible");
+    initGame();
+  });
+
+  restartBtn.addEventListener("click", initGame);
+
+  backToWelcomeBtn.addEventListener("click", () => {
+    welcomeScreen.classList.remove("fade-out");
+    gameContainer.classList.remove("game-visible");
+    clearInterval(timerInterval);
+  });
+
+  playAgainBtn.addEventListener("click", ()=>{
+    winModal.classList.add("hidden");
+    initGame();
+  });
+
+  winBackBtn.addEventListener("click", ()=>{
+    winModal.classList.add("hidden");
+    welcomeScreen.classList.remove("fade-out");
+    gameContainer.classList.remove("game-visible");
+    clearInterval(timerInterval);
+  });
+});
   </script>
 </body>
 </html>
