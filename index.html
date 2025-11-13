@@ -68,12 +68,16 @@
     .card-back {
       background-color: white;
       transform: rotateY(180deg);
-      font-size: 2rem;
-      color: #c0392b;
       flex-direction: column;
       text-align: center;
       justify-content: center;
       align-items: center;
+    }
+
+    .card-back img {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 8px;
     }
 
     .matched {
@@ -108,8 +112,6 @@
       text-align: center;
       max-width: 90%;
       width: 500px;
-      position: relative;
-      overflow: hidden;
     }
 
     .start-btn {
@@ -145,9 +147,10 @@
       opacity: 1;
     }
 
-    .fruit-emoji {
-      font-size: 50px;
-      line-height: 1;
+    img.fruit-img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
     }
   </style>
 </head>
@@ -216,16 +219,16 @@
       let lockBoard = false;
 
       const fruits = [
-        { name: "山竹", emoji: "🫘" },
-        { name: "西瓜", emoji: "🍉" },
-        { name: "榴莲", emoji: "🥝" },
-        { name: "芒果", emoji: "🥭" },
-        { name: "苹果", emoji: "🍎" },
-        { name: "香蕉", emoji: "🍌" },
-        { name: "橘子", emoji: "🍊" },
-        { name: "草莓", emoji: "🍓" },
-        { name: "葡萄", emoji: "🍇" },
-        { name: "荔枝", emoji: "🍒" },
+        { name: "山竹", img: "mangosteen.png" },
+        { name: "榴莲", img: "durian.png" },
+        { name: "西瓜", img: "watermelon.png" },
+        { name: "芒果", img: "mango.png" },
+        { name: "苹果", img: "apple.png" },
+        { name: "香蕉", img: "banana.png" },
+        { name: "橘子", img: "orange.png" },
+        { name: "草莓", img: "strawberry.png" },
+        { name: "葡萄", img: "grapes.png" },
+        { name: "樱桃", img: "cherry.png" },
       ];
 
       function shuffle(array) {
@@ -240,7 +243,7 @@
         gameBoard.innerHTML = "";
         const deck = [];
         fruits.forEach((f) => deck.push({ ...f, type: "text" }));
-        fruits.forEach((f) => deck.push({ ...f, type: "emoji" }));
+        fruits.forEach((f) => deck.push({ ...f, type: "image" }));
         shuffle(deck);
 
         deck.forEach((card) => {
@@ -253,16 +256,15 @@
               <div class="card-front">
                 ${
                   card.type === "text"
-                    ? `<p class="text-center">${card.name}</p>`
-                    : `<div class='fruit-emoji'>${card.emoji}</div>`
+                    ? `<p class="text-center text-xl font-bold">${card.name}</p>`
+                    : `<img src="images/${card.img}" alt="${card.name}" class="fruit-img" />`
                 }
               </div>
               <div class="card-back flex flex-col items-center justify-center">
-                <div class="fruit-emoji text-4xl mb-2">${card.emoji}</div>
+                <img src="images/${card.img}" alt="${card.name}" />
                 <p class="text-lg font-bold">${card.name}</p>
               </div>
             </div>`;
-
           el.addEventListener("click", flipCard);
           gameBoard.appendChild(el);
         });
@@ -272,7 +274,6 @@
         if (lockBoard || this.classList.contains("flipped") || this.classList.contains("matched")) return;
         this.classList.add("flipped");
         currentlyFlippedCards.push(this);
-
         if (currentlyFlippedCards.length === 2) checkForMatch();
       }
 
@@ -336,11 +337,6 @@
         welcomeScreen.classList.remove("fade-out");
         gameContainer.classList.remove("game-visible");
         clearInterval(timerInterval);
-
-        document.querySelectorAll(".card").forEach(c => {
-          c.classList.remove("flipped", "matched");
-        });
-
         score = 0;
         matchesFound = 0;
         scoreElement.textContent = score;
