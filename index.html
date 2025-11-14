@@ -1,260 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chinese Fruit Matching Game</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap");
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chinese Fruit Matching Game</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap');
 
-    body {
-      font-family: "Noto Sans SC", "Noto Sans Thai", sans-serif;
-      background-color: #f5f0e6;
-      background-image: radial-gradient(#f8d7da 1px, transparent 1px),
-        radial-gradient(#f8d7da 1px, transparent 1px);
-      background-size: 20px 20px;
-      background-position: 0 0, 10px 10px;
-      margin: 0;
-      overflow-x: hidden;
-    }
+body {
+  font-family: 'Noto Sans SC','Noto Sans Thai',sans-serif;
+  background-color: #f5f0e6;
+  background-image: radial-gradient(#f8d7da 1px, transparent 1px), radial-gradient(#f8d7da 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  margin:0;
+  overflow-x:hidden;
+}
 
-    .card {
-      perspective: 1000px;
-      width: 100%;
-      aspect-ratio: 3/4;
-      max-width: 120px;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+.card { perspective:1000px; width:100%; aspect-ratio:3/4; max-width:120px; cursor:pointer; transition:transform 0.2s;}
+.card:hover { transform: translateY(-5px);}
+.card-inner { position:relative; width:100%; height:100%; transition: transform 0.6s; transform-style: preserve-3d; box-shadow:0 4px 8px rgba(0,0,0,0.1); border-radius:10px;}
+.card.flipped .card-inner { transform: rotateY(180deg);}
+.card-front, .card-back { position:absolute; width:100%; height:100%; backface-visibility:hidden; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center;}
+.card-front { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); font-size:20px; font-weight:bold; color:#333; padding:10px;}
+.card-back { background-color:white; transform:rotateY(180deg); color:#c0392b;}
+.card-back img { width:60%; max-width:80px; height:auto; margin-bottom:10px;}
+.matched { opacity:0.7; pointer-events:none;}
 
-    .card:hover {
-      transform: translateY(-5px);
-    }
+.welcome-screen { position:fixed; top:0; left:0; width:100%; height:100%; background-color:#f5f0e6; background-image: radial-gradient(#f8d7da 1px, transparent 1px), radial-gradient(#f8d7da 1px, transparent 1px); background-size:20px 20px; background-position:0 0,10px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; transition:opacity 0.5s ease-in-out;}
+.welcome-container { background-color:white; border-radius:20px; padding:2rem; box-shadow:0 10px 25px rgba(0,0,0,0.1); text-align:center; max-width:90%; width:500px;}
+.start-btn { background:linear-gradient(135deg,#ff9a9e 0%,#fad0c4 100%); color:#fff; font-size:1.2rem; font-weight:bold; padding:0.8rem 2.5rem; border-radius:50px; border:none; cursor:pointer; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(255,154,158,0.4); margin-top:2rem;}
+.start-btn:hover { transform: translateY(-3px); box-shadow:0 7px 20px rgba(255,154,158,0.6);}
+.fade-out { opacity:0; pointer-events:none;}
 
-    .card-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-    }
+.game-container { opacity:0; transition:opacity 0.5s ease-in-out;}
+.game-visible { opacity:1;}
 
-    .card.flipped .card-inner {
-      transform: rotateY(180deg);
-    }
+.popup { position:fixed; top:20%; left:50%; transform:translateX(-50%); background-color:#fff; padding:15px 25px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.2); text-align:center; z-index:2000; animation:popup 5s forwards;}
+@keyframes popup { 0%{opacity:0; transform:translate(-50%, -20px);} 50%{opacity:1;} 100%{opacity:0; transform:translate(-50%, -50px);} }
 
-    .card-front,
-    .card-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      text-align: center;
-    }
+.confetti { position:fixed; width:10px; height:10px; z-index:3000; pointer-events:none; animation:confetti-fall linear forwards; }
+@keyframes confetti-fall {0%{transform:translateY(0) rotate(0deg);} 100%{transform:translateY(100vh) rotate(360deg);} }
 
-    .card-front {
-      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-      font-size: 20px;
-      font-weight: bold;
-      color: #333;
-      padding: 10px;
-    }
-
-    .card-back {
-      background-color: white;
-      transform: rotateY(180deg);
-      color: #c0392b;
-    }
-
-    .card-back img {
-      width: 60%;
-      max-width: 80px;
-      height: auto;
-      margin-bottom: 10px;
-    }
-
-    .matched {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
-    .welcome-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: #f5f0e6;
-      background-image: radial-gradient(#f8d7da 1px, transparent 1px),
-        radial-gradient(#f8d7da 1px, transparent 1px);
-      background-size: 20px 20px;
-      background-position: 0 0, 10px 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      transition: opacity 0.5s ease-in-out;
-    }
-
-    .welcome-container {
-      background-color: white;
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 90%;
-      width: 500px;
-    }
-
-    .start-btn {
-      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-      color: #fff;
-      font-size: 1.2rem;
-      font-weight: bold;
-      padding: 0.8rem 2.5rem;
-      border-radius: 50px;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
-      margin-top: 2rem;
-    }
-
-    .start-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 7px 20px rgba(255, 154, 158, 0.6);
-    }
-
-    .fade-out {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .game-container {
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-    }
-
-    .game-visible {
-      opacity: 1;
-    }
-
-    /* Popup */
-    .popup {
-      position: fixed;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #fff;
-      padding: 15px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-align: center;
-      z-index: 2000;
-      animation: popup 1s forwards;
-    }
-
-    @keyframes popup {
-      0% {opacity: 0; transform: translate(-50%, -20px);}
-      50% {opacity: 1;}
-      100% {opacity: 0; transform: translate(-50%, -50px);}
-    }
-
-    /* Confetti */
-    .confetti {
-      position: fixed;
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      z-index: 3000;
-      pointer-events: none;
-      animation: confetti-fall linear forwards;
-    }
-    @keyframes confetti-fall {
-      0% { transform: translateY(0) rotate(0deg);}
-      100% { transform: translateY(100vh) rotate(360deg);}
-    }
-
-    @media (max-width: 640px) {
-      .card {
-        max-width: 80px;
-      }
-    }
-  </style>
+@media (max-width:640px){ .card{ max-width:80px;} }
+</style>
 </head>
 <body>
-  <!-- Welcome Screen -->
-  <div id="welcome-screen" class="welcome-screen">
-    <div class="welcome-container">
-      <h1 class="text-4xl font-bold text-red-800 mb-3">你的包有什么？</h1>
-      <h2 class="text-2xl text-gray-700 mb-6">มีอะไรในกระเป๋าของคุณ?</h2>
-      <p class="text-lg text-gray-600 mb-4">เกมจับคู่ผลไม้ภาษาจีน</p>
-      <p class="text-gray-500 mb-8">จับคู่อักษรจีนกับรูปภาพผลไม้ให้ถูกต้อง</p>
-      <button id="start-game-btn" class="start-btn">
-        开始游戏 <br /><span class="text-sm">เริ่มเกม</span>
-      </button>
+<!-- Welcome Screen -->
+<div id="welcome-screen" class="welcome-screen">
+  <div class="welcome-container">
+    <h1 class="text-4xl font-bold text-red-800 mb-3">你的包有什么？</h1>
+    <h2 class="text-2xl text-gray-700 mb-6">มีอะไรในกระเป๋าของคุณ?</h2>
+    <p class="text-lg text-gray-600 mb-4">เกมจับคู่ผลไม้ภาษาจีน</p>
+    <p class="text-gray-500 mb-8">จับคู่อักษรจีนกับรูปภาพผลไม้ให้ถูกต้อง</p>
+    <button id="start-game-btn" class="start-btn">
+      开始游戏 <br /><span class="text-sm">เริ่มเกม</span>
+    </button>
+  </div>
+</div>
+
+<!-- Game Container -->
+<div id="game-container" class="game-container min-h-screen py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-red-800 mb-2">中文水果配对游戏</h1>
+      <h2 class="text-xl text-gray-700">เกมจับคู่ผลไม้ภาษาจีน</h2>
+      <div class="mt-4 bg-yellow-100 p-3 rounded-lg inline-block">
+        <p class="text-gray-700">คะแนน: <span id="score" class="font-bold">0</span> | เวลา: <span id="timer" class="font-bold">60</span> วินาที | คู่ที่พบ: <span id="matches" class="font-bold">0</span>/10</p>
+      </div>
+    </header>
+    <div class="bg-white rounded-xl p-6 shadow-lg">
+      <div id="game-board" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"></div>
+    </div>
+    <div class="mt-6 text-center">
+      <button id="restart-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">เริ่มเกมใหม่</button>
+      <button id="back-to-welcome-btn" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">กลับหน้าหลัก</button>
     </div>
   </div>
+</div>
 
-  <!-- Game Container -->
-  <div id="game-container" class="game-container min-h-screen py-8 px-4">
-    <div class="max-w-4xl mx-auto">
-      <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-red-800 mb-2">中文水果配对游戏</h1>
-        <h2 class="text-xl text-gray-700">เกมจับคู่ผลไม้ภาษาจีน</h2>
-        <div class="mt-4 bg-yellow-100 p-3 rounded-lg inline-block">
-          <p class="text-gray-700">
-            คะแนน: <span id="score" class="font-bold">0</span> | เวลา:
-            <span id="timer" class="font-bold">60</span> วินาที | คู่ที่พบ:
-            <span id="matches" class="font-bold">0</span>/10
-          </p>
-        </div>
-      </header>
-
-      <div class="bg-white rounded-xl p-6 shadow-lg">
-        <div id="game-board" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 justify-items-center"></div>
-      </div>
-
-      <div class="mt-6 text-center">
-        <button id="restart-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-          เริ่มเกมใหม่
-        </button>
-        <button id="back-to-welcome-btn" class="ml-4 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300 ease-in-out transform hover:scale-105">
-          กลับหน้าหลัก
-        </button>
-      </div>
+<!-- Win Modal -->
+<div id="win-modal" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 hidden">
+  <div class="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all">
+    <div class="text-center">
+      <div class="text-5xl mb-4">🎉</div>
+      <h2 class="text-2xl font-bold text-red-800 mb-2">ยินดีด้วย!</h2>
+      <p class="text-lg mb-4">คุณจับคู่ผลไม้ทั้งหมดได้สำเร็จ!</p>
+      <p class="mb-6">คะแนนของคุณ: <span id="final-score" class="font-bold text-xl">0</span></p>
+      <button id="play-again-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">เล่นอีกครั้ง</button>
+      <button id="win-back-to-welcome-btn" class="mt-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">กลับหน้าหลัก</button>
     </div>
   </div>
+</div>
 
-  <!-- Win Modal -->
-  <div id="win-modal" class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 hidden">
-      <div class="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all">
-          <div class="text-center">
-              <div class="text-5xl mb-4">🎉</div>
-              <h2 class="text-2xl font-bold text-red-800 mb-2">ยินดีด้วย!</h2>
-              <p class="text-lg mb-4">คุณจับคู่ผลไม้ทั้งหมดได้สำเร็จ!</p>
-              <p class="mb-6">คะแนนของคุณ: <span id="final-score" class="font-bold text-xl">0</span></p>
-              <button id="play-again-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">
-                  เล่นอีกครั้ง
-              </button>
-              <button id="win-back-to-welcome-btn" class="mt-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-full shadow-md transition duration-300">
-                  กลับหน้าหลัก
-              </button>
-          </div>
-      </div>
-  </div>
-
-  <script>
+<script>
 document.addEventListener("DOMContentLoaded", () => {
   const welcomeScreen = document.getElementById("welcome-screen");
   const gameContainer = document.getElementById("game-container");
@@ -271,196 +111,110 @@ document.addEventListener("DOMContentLoaded", () => {
   const playAgainBtn = document.getElementById("play-again-btn");
   const winBackBtn = document.getElementById("win-back-to-welcome-btn");
 
-  let score = 0;
-  let timeLeft = 60;
-  let matchesFound = 0;
-  let timerInterval;
-  let currentlyFlippedCards = [];
-  let lockBoard = false;
+  let score=0, timeLeft=60, matchesFound=0, timerInterval, currentlyFlippedCards=[], lockBoard=false;
 
-  const fruits = [
-    { name: "苹果", pinyin:"píng guǒ", thai:"แอปเปิ้ล", img: "apple.png", sound:"apple.mp3" },
-    { name: "香蕉", pinyin:"xiāng jiāo", thai:"กล้วย", img: "banana.png", sound:"banana.mp3" },
-    { name: "樱桃", pinyin:"yīng táo", thai:"เชอร์รี่", img: "cherry.png", sound:"cherry.mp3" },
-    { name: "榴莲", pinyin:"liú lián", thai:"ทุเรียน", img: "durian.png", sound:"durian.mp3" },
-    { name: "葡萄", pinyin:"pú táo", thai:"องุ่น", img: "grapes.png", sound:"grapes.mp3" },
-    { name: "芒果", pinyin:"máng guǒ", thai:"มะม่วง", img: "mango.png", sound:"mango.mp3" },
-    { name: "山竹", pinyin:"shān zhú", thai:"มังคุด", img: "mangosteen.png", sound:"mangosteen.mp3" },
-    { name: "橘子", pinyin:"jú zi", thai:"ส้ม", img: "orange.png", sound:"orange.mp3" },
-    { name: "草莓", pinyin:"cǎo méi", thai:"สตรอว์เบอร์รี่", img: "strawberry.png", sound:"strawberry.mp3" },
-    { name: "西瓜", pinyin:"xī guā", thai:"แตงโม", img: "watermelon.png", sound:"watermelon.mp3" },
+  const fruits=[
+    {name:"苹果", pinyin:"píng guǒ", thai:"แอปเปิ้ล", img:"apple.png", sound:"apple.m4a"},
+    {name:"香蕉", pinyin:"xiāng jiāo", thai:"กล้วย", img:"banana.png", sound:"banana.m4a"},
+    {name:"樱桃", pinyin:"yīng táo", thai:"เชอร์รี่", img:"cherry.png", sound:"cherry.m4a"},
+    {name:"哈密瓜", pinyin:"hā mì guā", thai:"แคนตาลูป", img:"melon.png", sound:"melon.m4a"},
+    {name:"葡萄", pinyin:"pú táo", thai:"องุ่น", img:"grapes.png", sound:"grapes.m4a"},
+    {name:"芒果", pinyin:"máng guǒ", thai:"มะม่วง", img:"mango.png", sound:"mango.m4a"},
+    {name:"菠萝", pinyin:"bō luó", thai:"สับปะรด", img:"pineapple.png", sound:"pineapple.m4a"},
+    {name:"橘子", pinyin:"jú zi", thai:"ส้ม", img:"orange.png", sound:"orange.m4a"},
+    {name:"草莓", pinyin:"cǎo méi", thai:"สตรอว์เบอร์รี่", img:"strawberry.png", sound:"strawberry.m4a"},
+    {name:"西瓜", pinyin:"xī guā", thai:"แตงโม", img:"watermelon.png", sound:"watermelon.m4a"},
   ];
 
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
+  function shuffle(array){for(let i=array.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]]}return array;}
 
-  function createCards() {
-    gameBoard.innerHTML = "";
-    const deck = [];
-    fruits.forEach(f => deck.push({ ...f, type: "text" }));
-    fruits.forEach(f => deck.push({ ...f, type: "image" }));
+  function createCards(){
+    gameBoard.innerHTML="";
+    const deck=[];
+    fruits.forEach(f=>deck.push({...f,type:"text"}));
+    fruits.forEach(f=>deck.push({...f,type:"image"}));
     shuffle(deck);
-
-    deck.forEach(card => {
-      const el = document.createElement("div");
-      el.className = "card";
-      el.dataset.name = card.name;
-      el.dataset.pinyin = card.pinyin;
-      el.dataset.thai = card.thai;
-      el.dataset.sound = card.sound;
-
-      el.innerHTML = `
-        <div class="card-inner">
-          <div class="card-front">
-            ${card.type === "text" ? `<p class="text-center">${card.name}</p>` : `<img src="images/${card.img}" alt="${card.name}" />`}
-          </div>
-          <div class="card-back">
-            <img src="images/${card.img}" alt="${card.name}" />
-            <p class="text-lg font-bold">${card.name}</p>
-            <p class="text-sm text-gray-600">${card.pinyin}</p>
-          </div>
-        </div>
-      `;
-
-      el.addEventListener("click", flipCard);
+    deck.forEach(card=>{
+      const el=document.createElement("div");
+      el.className="card";
+      el.dataset.name=card.name;
+      el.dataset.pinyin=card.pinyin;
+      el.dataset.thai=card.thai;
+      el.dataset.sound=card.sound;
+      el.innerHTML=`<div class="card-inner">
+        <div class="card-front">${card.type==="text"?`<p class="text-center">${card.name}</p>`:`<img src="images/${card.img}" alt="${card.name}"/>`}</div>
+        <div class="card-back"><img src="images/${card.img}" alt="${card.name}"/><p class="text-lg font-bold">${card.name}</p><p class="text-sm text-gray-600">${card.pinyin}</p></div>
+      </div>`;
+      el.addEventListener("click",flipCard);
       gameBoard.appendChild(el);
     });
   }
 
-  function flipCard() {
-    if (lockBoard || this.classList.contains("flipped") || this.classList.contains("matched")) return;
+  function flipCard(){
+    if(lockBoard||this.classList.contains("flipped")||this.classList.contains("matched"))return;
     this.classList.add("flipped");
     currentlyFlippedCards.push(this);
-
-    if (currentlyFlippedCards.length === 2) checkForMatch();
+    if(currentlyFlippedCards.length===2)checkForMatch();
   }
 
-  function checkForMatch() {
-    const [c1, c2] = currentlyFlippedCards;
-    if (c1.dataset.name === c2.dataset.name) {
-      c1.classList.add("matched");
-      c2.classList.add("matched");
-      updateScore(10);
-      matchesFound++;
-      matchesElement.textContent = matchesFound;
-
-      // Play sound
-      const audio = new Audio(`sounds/${c1.dataset.sound}`);
-      audio.play();
+  function checkForMatch(){
+    const [c1,c2]=currentlyFlippedCards;
+    if(c1.dataset.name===c2.dataset.name){
+      c1.classList.add("matched"); c2.classList.add("matched");
+      updateScore(10); matchesFound++; matchesElement.textContent=matchesFound;
+      const audio=new Audio(`sounds/${c1.dataset.sound}`); audio.play();
 
       // Popup
-      const popup = document.createElement("div");
-      popup.className = "popup";
-      popup.innerHTML = `<div class="text-center">
+      const popup=document.createElement("div"); popup.className="popup";
+      popup.innerHTML=`<div class="text-center">
         <div class="text-3xl font-bold mb-2">${c1.dataset.name}</div>
         <div class="text-xl text-red-600 mb-1">${c1.dataset.pinyin}</div>
         <div class="text-lg">${c1.dataset.thai}</div>
-      </div>`;
-      document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 1000);
-
-      // Confetti
-      for (let i = 0; i < 10; i++) {
-        const confetti = document.createElement("div");
-        confetti.className = "confetti";
-        confetti.style.left = `${c1.getBoundingClientRect().left + Math.random()*c1.offsetWidth}px`;
-        confetti.style.top = `${c1.getBoundingClientRect().top}px`;
-        confetti.style.backgroundColor = `hsl(${Math.random()*360},100%,50%)`;
-        confetti.style.animationDuration = (2+Math.random()*2)+"s";
-        document.body.appendChild(confetti);
-        setTimeout(()=>confetti.remove(),4000);
+      </div>`; document.body.appendChild(popup);
+      // Confetti โปรยบน popup
+      for(let i=0;i<15;i++){
+        const conf=document.createElement("div"); conf.className="confetti";
+        conf.style.left=`${popup.getBoundingClientRect().left+Math.random()*popup.offsetWidth}px`;
+        conf.style.top=`${popup.getBoundingClientRect().top}px`;
+        conf.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`;
+        conf.style.animationDuration=(2+Math.random()*2)+"s";
+        document.body.appendChild(conf);
+        setTimeout(()=>conf.remove(),4000);
       }
+      setTimeout(()=>popup.remove(),5000);
 
-      // Check win
-      if (matchesFound === fruits.length) showWinModal();
-
+      if(matchesFound===fruits.length)showWinModal();
     } else {
-      lockBoard = true;
-      setTimeout(() => {
-        c1.classList.remove("flipped");
-        c2.classList.remove("flipped");
-        lockBoard = false;
-      }, 1000);
+      lockBoard=true; setTimeout(()=>{c1.classList.remove("flipped"); c2.classList.remove("flipped"); lockBoard=false;},1000);
       updateScore(-2);
     }
-    currentlyFlippedCards = [];
+    currentlyFlippedCards=[];
   }
 
-  function updateScore(p) {
-    score += p;
-    if (score < 0) score = 0;
-    scoreElement.textContent = score;
-  }
+  function updateScore(p){score+=p;if(score<0)score=0;scoreElement.textContent=score;}
 
-  function startTimer() {
-    clearInterval(timerInterval);
-    timeLeft = 60;
-    timerElement.textContent = timeLeft;
-    timerInterval = setInterval(() => {
-      timeLeft--;
-      timerElement.textContent = timeLeft;
-      if (timeLeft <= 0) clearInterval(timerInterval);
-    }, 1000);
-  }
+  function startTimer(){clearInterval(timerInterval);timeLeft=60;timerElement.textContent=timeLeft; timerInterval=setInterval(()=>{timeLeft--; timerElement.textContent=timeLeft; if(timeLeft<=0)clearInterval(timerInterval);},1000);}
 
-  function initGame() {
-    score = 0;
-    matchesFound = 0;
-    scoreElement.textContent = score;
-    matchesElement.textContent = matchesFound;
-    lockBoard = false;
-    currentlyFlippedCards = [];
-    createCards();
-    startTimer();
-  }
+  function initGame(){score=0;matchesFound=0;scoreElement.textContent=score;matchesElement.textContent=matchesFound;lockBoard=false;currentlyFlippedCards=[];createCards();startTimer();}
 
-  function showWinModal() {
-    finalScore.textContent = score;
+  function showWinModal(){
+    finalScore.textContent=score;
     winModal.classList.remove("hidden");
-    // Confetti on modal
-    for (let i=0;i<50;i++){
-      const confetti=document.createElement("div");
-      confetti.className="confetti";
-      confetti.style.left=`${Math.random()*window.innerWidth}px`;
-      confetti.style.top=`${Math.random()*window.innerHeight}px`;
-      confetti.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`;
-      confetti.style.animationDuration=(2+Math.random()*2)+"s";
-      document.body.appendChild(confetti);
-      setTimeout(()=>confetti.remove(),4000);
+    for(let i=0;i<50;i++){
+      const conf=document.createElement("div"); conf.className="confetti";
+      conf.style.left=`${Math.random()*window.innerWidth}px`; conf.style.top=`${Math.random()*window.innerHeight}px`;
+      conf.style.backgroundColor=`hsl(${Math.random()*360},100%,50%)`; conf.style.animationDuration=(2+Math.random()*2)+"s";
+      document.body.appendChild(conf);
+      setTimeout(()=>conf.remove(),4000);
     }
   }
 
-  startGameBtn.addEventListener("click", () => {
-    welcomeScreen.classList.add("fade-out");
-    gameContainer.classList.add("game-visible");
-    initGame();
-  });
-
-  restartBtn.addEventListener("click", initGame);
-
-  backToWelcomeBtn.addEventListener("click", () => {
-    welcomeScreen.classList.remove("fade-out");
-    gameContainer.classList.remove("game-visible");
-    clearInterval(timerInterval);
-  });
-
-  playAgainBtn.addEventListener("click", ()=>{
-    winModal.classList.add("hidden");
-    initGame();
-  });
-
-  winBackBtn.addEventListener("click", ()=>{
-    winModal.classList.add("hidden");
-    welcomeScreen.classList.remove("fade-out");
-    gameContainer.classList.remove("game-visible");
-    clearInterval(timerInterval);
-  });
+  startGameBtn.addEventListener("click",()=>{welcomeScreen.classList.add("fade-out");gameContainer.classList.add("game-visible");initGame();});
+  restartBtn.addEventListener("click",initGame);
+  backToWelcomeBtn.addEventListener("click",()=>{welcomeScreen.classList.remove("fade-out");gameContainer.classList.remove("game-visible");clearInterval(timerInterval);});
+  playAgainBtn.addEventListener("click",()=>{winModal.classList.add("hidden");initGame();});
+  winBackBtn.addEventListener("click",()=>{winModal.classList.add("hidden");welcomeScreen.classList.remove("fade-out");gameContainer.classList.remove("game-visible");clearInterval(timerInterval);});
 });
-  </script>
+</script>
 </body>
 </html>
